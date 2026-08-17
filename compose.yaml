@@ -55,7 +55,7 @@ x-casaos:
   title: { en_us: Ryoiku }
   tagline: { en_us: Your private travel history and world map }
   description: { en_us: A private self-hosted map for visits, cities, trips, wishes, statistics, imports, and backups. }
-  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.1.0/src/client/public/ryoiku-icon.png
+  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.1.1/src/client/public/ryoiku-icon.png
   index: /
   port_map: "8515"
   repo: https://github.com/MaroIshiku/ryoiku

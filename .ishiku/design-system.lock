@@ -35,7 +35,7 @@
     },
     {
       "path": "src/client/world-overview.css",
-      "sha256": "98611145b5e26684fafad6e5277b8eca1280e77d3323351ae57dd3c343e05442",
+      "sha256": "054304fb106d22318a24e2dcf70181c8b14b12d0369d2e18963d76a950bd1911",
       "roles": [
         "components",
         "tokens"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 - 2026-08-17
+
+- Removed the world map graticule and increased the default land-to-ocean contrast with theme-colored country fills across every theme and mode.
+
 ## 0.1.0 - 2026-08-17
 
 - Add secure first-run administrator setup, Argon2id credentials, revocable server sessions, CSRF protection, and audit events.

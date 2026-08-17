@@ -90,10 +90,6 @@
   stroke: color-mix(in srgb, var(--color-primary) 30%, var(--color-outline));
 }
 
-.world-map-stage .map-graticule {
-  stroke: color-mix(in srgb, var(--color-primary) 16%, var(--color-outline));
-}
-
 .world-map-stage .map-country {
   vector-effect: non-scaling-stroke;
   stroke: color-mix(in srgb, var(--color-on-surface) 32%, transparent);
@@ -195,6 +191,10 @@
 
 .world-card-footer .map-legend {
   margin: 0;
+}
+
+.world-card-footer .swatch.unvisited {
+  background: color-mix(in srgb, var(--color-surface-soft) 78%, var(--color-primary));
 }
 
 .legend-item {

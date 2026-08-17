@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { geoEqualEarth, geoGraticule10, geoPath } from 'd3-geo';
+import { geoEqualEarth, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import type { FeatureCollection, Geometry } from 'geojson';
 import world from 'world-atlas/countries-110m.json';
@@ -16,7 +16,7 @@ export function WorldMap({countries,cities,layer,showCities,onCountry,onCity}:Pr
   const features=useMemo(()=>(feature(world as never,(world as unknown as {objects:{countries:never}}).objects.countries) as unknown as FeatureCollection<Geometry>).features,[]);
   const byNumeric=useMemo(()=>new Map(countries.filter(c=>c.numericCode).map(c=>[String(c.numericCode).padStart(3,'0'),c])),[countries]);
   const fill=(country:Country|undefined)=>{
-    if(!country?.visited)return country?.wishlisted?'var(--color-secondary-container)':'color-mix(in srgb,var(--color-surface-soft) 86%,var(--color-primary-container))';
+    if(!country?.visited)return country?.wishlisted?'var(--color-secondary-container)':'color-mix(in srgb,var(--color-surface-soft) 78%,var(--color-primary))';
     if(layer==='visited')return 'var(--color-primary-container)';
     if(layer==='recency'){
       if(!country.lastVisit)return 'var(--color-primary-container)';
@@ -35,7 +35,7 @@ export function WorldMap({countries,cities,layer,showCities,onCountry,onCity}:Pr
       <title id="map-title">Visited places on an Equal Earth map</title><desc id="map-desc">Use the synchronized country list below for a complete keyboard-accessible alternative.</desc>
       <defs><pattern id="wish" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--color-secondary-container)"/><path d="M0 8L8 0" stroke="var(--color-secondary)" strokeWidth="1"/></pattern></defs>
       <g transform={`translate(${offset.x} ${offset.y}) scale(${zoom})`}>
-        <path d={path({type:'Sphere'})??''} className="map-ocean"/><path d={path(geoGraticule10())??''} className="map-graticule"/>
+        <path d={path({type:'Sphere'})??''} className="map-ocean"/>
         {features.map((shape)=>{const id=String(shape.id).padStart(3,'0'),country=byNumeric.get(id);return <path key={id} d={path(shape)??''} className={`map-country ${country?.visited?'is-visited':''} ${country?.wishlisted?'is-wishlisted':''}`} fill={country?.wishlisted&&!country.visited?'url(#wish)':fill(country)} onClick={()=>country&&onCountry(country.code)}><title>{country?`${country.name}: ${country.visitCount} visits`:'Map area'}</title></path>})}
         {showCities&&zoom>=1.6&&cities.map(city=>{const point=projection([city.longitude,city.latitude]);return point?<g key={city.id} transform={`translate(${point[0]} ${point[1]})`} onClick={()=>onCity(city.id)} className="city-marker"><circle r={Math.max(2.5,5/zoom)}/><title>{city.name}, {city.countryName}: {city.visitCount} visits</title></g>:null})}
       </g>
