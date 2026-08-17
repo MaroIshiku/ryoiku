@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in {1..60}; do
-            result="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ishiku-release-release.yml/runs?event=push&head_sha=${GITHUB_SHA}&per_page=10")"
+            result="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ryoiku-release.yml/runs?event=push&head_sha=${GITHUB_SHA}&per_page=10")"
             run_id="$(jq -r '.workflow_runs[0].id // empty' <<<"${result}")"
             if [[ -z "${run_id}" ]]; then sleep 10; continue; fi
             status="$(jq -r '.workflow_runs[0].status' <<<"${result}")"
