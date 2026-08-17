@@ -20,7 +20,7 @@
     },
     {
       "path": "src/client/main.tsx",
-      "sha256": "90598f7cc6fbca6eb534e9e3222836e40eabe124aeb181c6dcbd8b2ab531d850",
+      "sha256": "a6be6876f81a1f80fd6c1a74468007dda24f4297ed1059931bc21a94dc6c96e2",
       "roles": [
         "theme-controller"
       ]
@@ -28,6 +28,14 @@
     {
       "path": "src/client/styles.css",
       "sha256": "48af6b81389553ef568399057c0002afad190c041d0b62a1f6732fbddf0c0606",
+      "roles": [
+        "components",
+        "tokens"
+      ]
+    },
+    {
+      "path": "src/client/world-overview.css",
+      "sha256": "98611145b5e26684fafad6e5277b8eca1280e77d3323351ae57dd3c343e05442",
       "roles": [
         "components",
         "tokens"

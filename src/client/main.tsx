@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { api, download, setCsrf, type ApiError } from "./api.js";
 import { WorldMap } from "./WorldMap.js";
 import "./styles.css";
+import "./world-overview.css";
 
 type User = {
   id: string;
@@ -600,6 +601,25 @@ function MapPage({ revision }: { revision: number }) {
         <Loading />
       </>
     );
+  const coverage = summary.data.countryTotal
+    ? Math.min(
+        100,
+        summary.data.countryCount
+          ? Math.max(
+              1,
+              Math.round(
+                (summary.data.countryCount / summary.data.countryTotal) * 100,
+              ),
+            )
+          : 0,
+      )
+    : 0;
+  const layers = [
+    { value: "visited", label: "Visited" },
+    { value: "visit_count", label: "Visits" },
+    { value: "city_count", label: "Cities" },
+    { value: "recency", label: "Recent" },
+  ];
   return (
     <>
       <PageHead
@@ -613,40 +633,83 @@ function MapPage({ revision }: { revision: number }) {
           </button>
         }
       />
-      <section className="map-card">
-        <div className="card-head">
+      <section className="map-card world-card">
+        <div className="world-card-head">
           <div>
-            <h2>Travel map</h2>
-            <p>Equal Earth projection · local geometry</p>
+            <span className="world-kicker">Personal atlas</span>
+            <h2>World at a glance</h2>
+            <p>Explore every recorded place on your private, local map.</p>
           </div>
-          <label className="compact-field">
-            Layer
-            <select value={layer} onChange={(e) => setLayer(e.target.value)}>
-              <option value="visited">Visited</option>
-              <option value="visit_count">Visit count</option>
-              <option value="city_count">City count</option>
-              <option value="recency">Recency</option>
-            </select>
-          </label>
+          <div
+            className="map-layer-switcher"
+            role="radiogroup"
+            aria-label="Map layer"
+          >
+            {layers.map((item) => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={layer === item.value}
+                className={layer === item.value ? "active" : ""}
+                key={item.value}
+                onClick={() => setLayer(item.value)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <WorldMap
-          countries={countries.data}
-          cities={
-            cities.data.filter(
-              (c) => c.latitude != null && c.longitude != null,
-            ) as (City & { latitude: number; longitude: number })[]
-          }
-          layer={layer}
-          showCities
-          onCountry={(code) => go(`/countries/${code}`)}
-          onCity={(id) => go(`/cities/${id}`)}
-        />
-        <p className="map-legend">
-          <span className="swatch visited" />
-          Visited <span className="swatch wishlist" />
-          Wishlist <span className="swatch unvisited" />
-          Not visited
-        </p>
+        <div className="world-map-stage">
+          <WorldMap
+            countries={countries.data}
+            cities={
+              cities.data.filter(
+                (c) => c.latitude != null && c.longitude != null,
+              ) as (City & { latitude: number; longitude: number })[]
+            }
+            layer={layer}
+            showCities
+            onCountry={(code) => go(`/countries/${code}`)}
+            onCity={(id) => go(`/cities/${id}`)}
+          />
+          <aside className="coverage-card" aria-label="Travel coverage">
+            <div className="coverage-ring" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
+                <circle className="coverage-track" cx="24" cy="24" r="19" />
+                <circle
+                  className="coverage-progress"
+                  cx="24"
+                  cy="24"
+                  r="19"
+                  pathLength="100"
+                  strokeDasharray={`${coverage} 100`}
+                />
+              </svg>
+              <strong>{coverage}%</strong>
+            </div>
+            <div>
+              <span>World coverage</span>
+              <strong>
+                {summary.data.countryCount} of {summary.data.countryTotal} countries
+              </strong>
+              <small>Your map grows with every recorded visit.</small>
+            </div>
+          </aside>
+        </div>
+        <div className="world-card-footer">
+          <p className="map-legend" aria-label="Map legend">
+            <span className="legend-item">
+              <span className="swatch visited" /> Visited
+            </span>
+            <span className="legend-item">
+              <span className="swatch wishlist" /> Wishlist
+            </span>
+            <span className="legend-item">
+              <span className="swatch unvisited" /> Not visited
+            </span>
+          </p>
+          <p className="map-note">Equal Earth · local geometry</p>
+        </div>
       </section>
       <section className="metrics">
         <Metric
