@@ -9,3 +9,4 @@
 - Add validated preview-first CSV import, spreadsheet-safe CSV exports, and transactional JSON backup/restore.
 - Add the responsive ishiku design 5 interface with six themes and light, dark, and system modes.
 - Add hardened OCI and ZimaOS delivery, CI verification, SBOM/provenance publishing, security documentation, and release evidence gates.
+- Keep managed skill metadata checksums stable across Windows and Linux checkouts.
