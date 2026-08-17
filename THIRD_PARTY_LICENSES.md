@@ -1,0 +1,14 @@
+# Third-party notices
+
+Ryoiku is distributed under Apache-2.0. Its JavaScript dependency graph is recorded exactly in `package-lock.json`; release images additionally publish an SPDX SBOM.
+
+## Bundled datasets
+
+- `countries-list` 3.4.1 — MIT license. Country names and ISO metadata are copied into a new SQLite database during initialization.
+- `world-atlas` 2.0.2 — ISC license. Bundled TopoJSON is derived from Natural Earth public-domain data.
+
+## Runtime libraries
+
+Direct runtime packages include Fastify and its official plugins, React, TanStack Router, Drizzle ORM, Zod, Argon2, D3 Geo, TopoJSON Client, `i18n-iso-countries`, `csv-parse`, `csv-stringify`, `tsx`, and React Hook Form. Their license texts and complete transitive inventory are available through the release SBOM and their package metadata in `node_modules`.
+
+The Ryoiku icon in `src/client/public/ryoiku-icon.png` was supplied by the repository owner as the application source asset. Its SHA-256 provenance is documented in `docs/ASSETS.md`.

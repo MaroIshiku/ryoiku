@@ -1,0 +1,6 @@
+Ryoiku
+Copyright 2026 ishiku contributors
+
+This product includes country metadata from countries-list and map topology
+from world-atlas. The latter is derived from Natural Earth data. See
+THIRD_PARTY_LICENSES.md for licenses and attribution.

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kit_version": "1.0.1",
+  "application": { "id": "ryoiku", "name": "Ryoiku", "family": "ishiku", "type": "web_application" },
+  "platform": { "profile": "standard-webapp", "authentication": "standard-account", "design_system": "ishiku-design-5", "security_baseline": "level-2", "locale": "en" },
+  "quality": { "default_risk_class": "C" },
+  "updates": { "timezone": "Europe/Berlin", "weekly_schedule": { "day": "monday", "time": "05:00" } },
+  "repository": { "default_branch": "main", "container_registry": "ghcr.io" },
+  "verification": { "commands": [
+    { "name": "application", "command": "npm ci && npm run check && npm run test:e2e:verified && npm audit --audit-level=high", "required_for_verified": true },
+    { "name": "compose", "command": "docker compose config --quiet && docker compose -f compose.dev.yaml config --quiet", "required_for_verified": true },
+    { "name": "container", "command": "docker build --check . && docker build -t ryoiku:verify .", "required_for_verified": true }
+  ] },
+  "upstreams": [
+    { "name": "world-atlas", "kind": "dependency", "source": "https://github.com/topojson/world-atlas", "current_version": "2.0.2", "update_policy": "weekly-review", "compatibility_notes": "Keep the local 110m topology format compatible with topojson-client." },
+    { "name": "countries-list", "kind": "dependency", "source": "https://github.com/annexare/Countries", "current_version": "3.4.1", "update_policy": "weekly-review", "compatibility_notes": "Country codes are seeded into SQLite on first database initialization." }
+  ]
+}

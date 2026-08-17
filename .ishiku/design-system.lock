@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "contract": {
+    "id": "ishiku-design-5",
+    "version": "5.0.0",
+    "sha256": "46628d1b69e5c27c3a339a31afbb7c3bed8d148b2fb0916c975407d86e9a1516"
+  },
+  "application": {
+    "id": "ryoiku",
+    "authentication": "standard-account",
+    "locale": "en"
+  },
+  "implementation": [
+    {
+      "path": "e2e/ryoiku.e2e.ts",
+      "sha256": "afbb5bd02251605f558eea1c7562c18f9cfe448675e07ca3d13c798f16275994",
+      "roles": [
+        "theme-controller"
+      ]
+    },
+    {
+      "path": "src/client/main.tsx",
+      "sha256": "90598f7cc6fbca6eb534e9e3222836e40eabe124aeb181c6dcbd8b2ab531d850",
+      "roles": [
+        "theme-controller"
+      ]
+    },
+    {
+      "path": "src/client/styles.css",
+      "sha256": "48af6b81389553ef568399057c0002afad190c041d0b62a1f6732fbddf0c0606",
+      "roles": [
+        "components",
+        "tokens"
+      ]
+    }
+  ]
+}

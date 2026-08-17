@@ -1,0 +1,16 @@
+services:
+  ryoiku:
+    build: .
+    init: true
+    read_only: true
+    user: "65532:65532"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      COOKIE_SECURE: "false"
+      ISHIKU_SETUP_SECRET: "synthetic-development-setup-secret-0001"
+    volumes: [ryoiku-dev-data:/data]
+    tmpfs: [/tmp:size=64m,mode=1777]
+volumes:
+  ryoiku-dev-data:
