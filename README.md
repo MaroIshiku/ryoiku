@@ -1,8 +1,8 @@
 # Ryoiku
 
-Ryoiku is a private, self-hosted travel history and world map. It records repeat visits, custom cities, trips, and wishes; derives visited countries and cities from those records; presents local-map insights; and offers previewed CSV transfer and JSON backup/restore.
+Ryoiku is a private, self-hosted travel history and world map. It records repeat visits, custom cities, trips, and wishes; derives visited countries and cities from those records; presents local-map insights; and offers previewed CSV transfer and JSON backup/restore. A bundled offline place search can resolve a name such as “Prien” into distinct candidates and fill city, country, region, and coordinates while the visit is saved.
 
-The UI is English-only and implements ishiku design contract 5 with six themes, light/dark/system modes, a desktop navigation rail, and mobile bottom navigation. The map and country reference are bundled; normal runtime operation makes no third-party requests and contains no telemetry.
+The UI is English-only and implements ishiku design contract 5 with six themes, light/dark/system modes, a desktop navigation rail, and mobile bottom navigation. Map geometry, country metadata, and the place-search index are bundled; normal runtime operation makes no third-party requests and contains no telemetry.
 
 ## Local development
 
@@ -34,6 +34,7 @@ For a local image build, use `docker compose -f compose.dev.yaml up --build` and
 - Settings → Data exports visits, cities, and countries as CSV.
 - Backup downloads a JSON snapshot of travel data and settings. It intentionally excludes passwords, sessions, and audit events.
 - Restore always previews counts and supports transactional merge or replacement of travel data.
+- The GeoNames reference index is immutable application data, not personal data. A selected result is copied into the JSON backup as a normal city, so restores do not depend on a matching index version.
 - Back up the complete `/data` directory before every image update in addition to keeping an application JSON backup.
 
 See [backup and restore](docs/BACKUP-RESTORE.md), [architecture](docs/ARCHITECTURE.md), [security](docs/SECURITY.md), and [release operations](docs/RELEASE.md).

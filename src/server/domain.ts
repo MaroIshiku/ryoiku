@@ -11,9 +11,12 @@ export const cityInput = z.object({
 }).refine((v) => (v.latitude == null) === (v.longitude == null), { message: 'Latitude and longitude must be provided together.' });
 export const visitInput = z.object({
   countryCode: z.string().length(2).transform((v) => v.toUpperCase()), cityId: z.string().uuid().nullable().optional(),
+  placeId: z.string().regex(/^geonames:\d+$/).nullable().optional(),
   tripId: z.string().uuid().nullable().optional(), startDate: optionalDate, endDate: optionalDate,
   datePrecision: datePrecision.default('unknown'), notes: z.string().max(10_000).nullable().optional(), confirmDuplicate: z.boolean().optional()
-}).refine((v) => !v.startDate || !v.endDate || v.endDate >= v.startDate, { message: 'End date must be on or after start date.' });
+}).refine((v) => !v.startDate || !v.endDate || v.endDate >= v.startDate, { message: 'End date must be on or after start date.' })
+  .refine((v) => !(v.cityId && v.placeId), { message: 'Choose either a saved city or a searched place.' });
+export const placeSearchInput = z.object({ query: z.string().trim().min(2).max(80) });
 export const tripInput = z.object({ name: z.string().trim().min(1).max(180), startDate: optionalDate, endDate: optionalDate,
   datePrecision: datePrecision.default('unknown'), notes: z.string().max(10_000).nullable().optional() })
   .refine((v) => !v.startDate || !v.endDate || v.endDate >= v.startDate, { message: 'End date must be on or after start date.' });

@@ -13,21 +13,21 @@
   "implementation": [
     {
       "path": "e2e/ryoiku.e2e.ts",
-      "sha256": "afbb5bd02251605f558eea1c7562c18f9cfe448675e07ca3d13c798f16275994",
+      "sha256": "5925ed59b74283e834bfc747545ff7a47f4fd00b7fa6887773b092b524654932",
       "roles": [
         "theme-controller"
       ]
     },
     {
       "path": "src/client/main.tsx",
-      "sha256": "a6be6876f81a1f80fd6c1a74468007dda24f4297ed1059931bc21a94dc6c96e2",
+      "sha256": "f83a00416d03bfc7906109f786bc4e6fe71d65cfa9d2c8e170a71170dda5ca3b",
       "roles": [
         "theme-controller"
       ]
     },
     {
       "path": "src/client/styles.css",
-      "sha256": "48af6b81389553ef568399057c0002afad190c041d0b62a1f6732fbddf0c0606",
+      "sha256": "e66853a4cdae7bdf0dc2c62b64d2b5bc0c7ebde1dab9dee3ca30267ac32ffec2",
       "roles": [
         "components",
         "tokens"

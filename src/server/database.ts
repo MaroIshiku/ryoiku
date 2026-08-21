@@ -76,6 +76,13 @@ function migrate(sqlite: Sqlite) {
     if (!columns.some((column) => column.name === 'custom_country_total')) sqlite.exec('ALTER TABLE app_settings ADD COLUMN custom_country_total INTEGER NOT NULL DEFAULT 195 CHECK(custom_country_total BETWEEN 1 AND 999)');
     sqlite.prepare('INSERT INTO schema_migrations(version,applied_at) VALUES(2,?)').run(new Date().toISOString());
   }
+  const third = sqlite.prepare('SELECT version FROM schema_migrations WHERE version = 3').get();
+  if (!third) {
+    sqlite.exec(`CREATE INDEX IF NOT EXISTS cities_user_geocoder_id_idx
+      ON cities(user_id,geocoder_provider,geocoder_external_id)
+      WHERE geocoder_provider IS NOT NULL AND geocoder_external_id IS NOT NULL`);
+    sqlite.prepare('INSERT INTO schema_migrations(version,applied_at) VALUES(3,?)').run(new Date().toISOString());
+  }
 }
 
 function seedCountries(sqlite: Sqlite) {

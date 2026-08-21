@@ -13,6 +13,7 @@
   ] },
   "upstreams": [
     { "name": "world-atlas", "kind": "dependency", "source": "https://github.com/topojson/world-atlas", "current_version": "2.0.2", "update_policy": "weekly-review", "compatibility_notes": "Keep the local 110m topology format compatible with topojson-client." },
-    { "name": "countries-list", "kind": "dependency", "source": "https://github.com/annexare/Countries", "current_version": "3.4.1", "update_policy": "weekly-review", "compatibility_notes": "Country codes are seeded into SQLite on first database initialization." }
+    { "name": "countries-list", "kind": "dependency", "source": "https://github.com/annexare/Countries", "current_version": "3.4.1", "update_policy": "weekly-review", "compatibility_notes": "Country codes are seeded into SQLite on first database initialization." },
+    { "name": "GeoNames cities1000", "kind": "dataset", "source": "https://download.geonames.org/export/dump/", "current_version": "2026-08-21", "update_policy": "weekly-review", "compatibility_notes": "The bundled read-only FTS5 index is generated from pinned source files; exact SHA-256 provenance and CC BY 4.0 attribution are in data/geonames-provenance.json." }
   ]
 }

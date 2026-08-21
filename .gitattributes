@@ -1,3 +1,4 @@
 * text=auto eol=lf
 .agents/skills/**/agents/openai.yaml -text
 *.png binary
+*.db3 binary

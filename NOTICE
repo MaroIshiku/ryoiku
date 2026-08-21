@@ -4,3 +4,6 @@ Copyright 2026 ishiku contributors
 This product includes country metadata from countries-list and map topology
 from world-atlas. The latter is derived from Natural Earth data. See
 THIRD_PARTY_LICENSES.md for licenses and attribution.
+
+Offline place search contains data derived from the GeoNames geographical
+database, licensed under Creative Commons Attribution 4.0.
