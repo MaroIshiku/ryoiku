@@ -1,4 +1,4 @@
-ARG APP_VERSION=0.1.3
+ARG APP_VERSION=0.2.0
 ARG BUILD_DATE=development
 ARG GIT_SHA=development
 
@@ -13,13 +13,14 @@ FROM gcr.io/distroless/cc-debian12:nonroot@sha256:adcd20c7b4c988b73cbfbddb26d2ee
 ARG APP_VERSION
 ARG BUILD_DATE
 ARG GIT_SHA
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/app.sqlite COOKIE_SECURE=true APP_VERSION=${APP_VERSION} BUILD_DATE=${BUILD_DATE} GIT_SHA=${GIT_SHA}
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/app.sqlite PLACE_DATABASE_PATH=/app/reference/geonames-cities.db3 COOKIE_SECURE=true APP_VERSION=${APP_VERSION} BUILD_DATE=${BUILD_DATE} GIT_SHA=${GIT_SHA}
 WORKDIR /app
 COPY --from=build --chown=65532:65532 /usr/local/bin/node /usr/local/bin/node
 COPY --from=build --chown=65532:65532 /app/package.json /app/package-lock.json ./
 COPY --from=build --chown=65532:65532 /app/node_modules ./node_modules
 COPY --from=build --chown=65532:65532 /app/src ./src
 COPY --from=build --chown=65532:65532 /app/dist ./dist
+COPY --from=build --chown=65532:65532 /app/data/geonames-cities.db3 ./reference/geonames-cities.db3
 COPY --from=build --chown=65532:65532 /app/LICENSE /app/NOTICE /app/THIRD_PARTY_LICENSES.md ./
 COPY --from=build --chown=65532:65532 /data-seed /data
 USER 65532:65532

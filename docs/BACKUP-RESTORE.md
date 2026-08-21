@@ -7,4 +7,6 @@ Use two independent backups:
 
 Test restoration periodically on an isolated instance. In the application, select the JSON file, inspect the preview, then choose merge or replace travel data. The commit is transactional; invalid foreign keys roll back the entire restore.
 
+The bundled place index is immutable application data and is intentionally excluded from `/data` backups. When an offline search result is selected, its display name, country, region, coordinates, provider, and stable external ID are copied into the user-owned city record and included in JSON and SQLite backups.
+
 Before an upgrade, record the deployed image digest and back up `/data`. If rollback is required, stop the new container, restore the matching pre-upgrade data snapshot when the release notes declare a schema change, pin the previous image by digest, start it, and verify `/health/ready`, login, map totals, and a representative visit. Never combine an older binary with a database that has an explicitly incompatible migration.

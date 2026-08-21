@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 - 2026-08-21
+
+- Add private offline place search with disambiguated city, region, country, and coordinate suggestions directly in the Add Visit flow.
+- Create or reuse the selected city and its visit atomically while retaining manual cities and country-only visits.
+- Bundle a pinned, attributed GeoNames cities1000 FTS5 index with no runtime third-party requests.
+- Apply only an additive city lookup-index migration; existing databases, manual cities, country-only visits, CSV files, and JSON backups remain compatible.
+- Rollback to the v0.1.3 image is supported after backing up `/data`; the new reference index is immutable application data and the personal schema change does not rewrite records.
+
 ## 0.1.3 - 2026-08-21
 
 - Embed the release version, UTC build timestamp, and exact Git commit in the published container manifest instead of retaining Dockerfile development defaults.

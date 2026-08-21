@@ -6,6 +6,7 @@ const schema = z.object({
   HOST: z.string().default('0.0.0.0'),
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   DATABASE_PATH: z.string().default('/data/app.sqlite'),
+  PLACE_DATABASE_PATH: z.string().default('data/geonames-cities.db3'),
   STATIC_ROOT: z.string().default('dist/client'),
   ISHIKU_BOOTSTRAP_PASSWORD_FILE: z.string().optional(),
   ISHIKU_SETUP_SECRET: z.string().min(32).max(1024).optional(),
@@ -18,6 +19,7 @@ export function loadConfig(environment = process.env) {
     ...value,
     COOKIE_SECURE: value.COOKIE_SECURE === 'true',
     STATIC_ROOT: resolve(value.STATIC_ROOT),
+    PLACE_DATABASE_PATH: resolve(value.PLACE_DATABASE_PATH),
     setupSecret: value.ISHIKU_SETUP_SECRET,
     bootstrapPassword: value.ISHIKU_BOOTSTRAP_PASSWORD_FILE && existsSync(value.ISHIKU_BOOTSTRAP_PASSWORD_FILE) ? readFileSync(value.ISHIKU_BOOTSTRAP_PASSWORD_FILE, 'utf8').trim() : undefined
   };

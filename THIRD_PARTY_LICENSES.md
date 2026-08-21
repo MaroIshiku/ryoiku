@@ -6,6 +6,7 @@ Ryoiku is distributed under Apache-2.0. Its JavaScript dependency graph is recor
 
 - `countries-list` 3.4.1 — MIT license. Country names and ISO metadata are copied into a new SQLite database during initialization.
 - `world-atlas` 2.0.2 — ISC license. Bundled TopoJSON is derived from Natural Earth public-domain data.
+- GeoNames `cities1000` snapshot 2026-08-21 — Creative Commons Attribution 4.0. The bundled place-search index is derived from the GeoNames geographical database. Source URLs, input hashes, generator, and artifact provenance are recorded in `data/geonames-provenance.json` and `data/README.md`.
 
 ## Runtime libraries
 

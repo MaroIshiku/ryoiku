@@ -64,6 +64,18 @@ type Visit = {
   datePrecision: string;
   notes: string | null;
 };
+type PlaceResult = {
+  id: string;
+  source: "saved" | "geonames";
+  cityId?: string;
+  placeId?: string;
+  name: string;
+  countryCode: string;
+  countryName: string;
+  admin1: string | null;
+  latitude: number | null;
+  longitude: number | null;
+};
 type Summary = {
   visitCount: number;
   countryCount: number;
@@ -174,6 +186,162 @@ function Loading() {
       <span />
       <span />
       <span />
+    </div>
+  );
+}
+
+function PlaceCombobox({
+  onSelect,
+}: {
+  onSelect: (place: PlaceResult | null) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<PlaceResult[]>([]);
+  const [selected, setSelected] = useState<PlaceResult | null>(null);
+  const [active, setActive] = useState(-1);
+  const [status, setStatus] = useState("");
+  const listId = "visit-place-results";
+
+  useEffect(() => {
+    if (selected || query.trim().length < 2) {
+      setResults([]);
+      setActive(-1);
+      setStatus(query.trim().length === 1 ? "Type one more character to search." : "");
+      return;
+    }
+    const controller = new AbortController();
+    setStatus("Searching local places…");
+    const timer = window.setTimeout(() => {
+      api<{ results: PlaceResult[] }>("/api/v1/places/search", {
+        method: "POST",
+        body: JSON.stringify({ query }),
+        signal: controller.signal,
+      })
+        .then((response) => {
+          setResults(response.results);
+          setActive(response.results.length ? 0 : -1);
+          setStatus(
+            response.results.length
+              ? `${response.results.length} local places found.`
+              : "No matching places found. You can still save a country-only visit.",
+          );
+        })
+        .catch((error: ApiError | DOMException) => {
+          if (!(error instanceof DOMException && error.name === "AbortError")) {
+            setResults([]);
+            setActive(-1);
+            setStatus((error as ApiError).message ?? "Place search is unavailable.");
+          }
+        });
+    }, 200);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, selected]);
+
+  const choose = (place: PlaceResult) => {
+    setSelected(place);
+    setQuery(place.name);
+    setResults([]);
+    setActive(-1);
+    setStatus(`${place.name}, ${place.countryName} selected.`);
+    onSelect(place);
+  };
+  const clear = () => {
+    setSelected(null);
+    setQuery("");
+    setResults([]);
+    setStatus("");
+    onSelect(null);
+  };
+  return (
+    <div className="place-combobox">
+      <label htmlFor="visit-place-search">City or place (optional)</label>
+      <div className="place-input-wrap">
+        <input
+          id="visit-place-search"
+          name="placeSearch"
+          value={query}
+          placeholder="Search for Prien, Kyoto, or another place"
+          maxLength={80}
+          autoFocus
+          autoComplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={results.length > 0}
+          aria-controls={listId}
+          aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+          onChange={(event) => {
+            if (selected) {
+              setSelected(null);
+              onSelect(null);
+            }
+            setQuery(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (!results.length) return;
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActive((value) => (value + 1) % results.length);
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActive((value) => (value <= 0 ? results.length - 1 : value - 1));
+            } else if (event.key === "Enter" && active >= 0) {
+              event.preventDefault();
+              choose(results[active]!);
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              setResults([]);
+              setActive(-1);
+              setStatus("Suggestions closed.");
+            }
+          }}
+        />
+        {query && (
+          <button type="button" className="clear-place" onClick={clear} aria-label="Clear place search">
+            ×
+          </button>
+        )}
+      </div>
+      {results.length > 0 && (
+        <div className="place-results" id={listId} role="listbox" aria-label="Place suggestions">
+          {results.map((place, index) => (
+            <div
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={index === active}
+              className={index === active ? "place-option active" : "place-option"}
+              key={place.id}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => choose(place)}
+            >
+              <span className="place-option-mark">{place.countryCode}</span>
+              <span>
+                <strong>{place.name}</strong>
+                <small>{[place.admin1, place.countryName].filter(Boolean).join(" · ")}</small>
+              </span>
+              {place.source === "saved" && <span className="saved-badge">Saved</span>}
+            </div>
+          ))}
+          <small className="place-attribution">Place data: GeoNames · CC BY 4.0</small>
+        </div>
+      )}
+      {selected && (
+        <div className="selected-place" aria-label="Selected place">
+          <span className="place-option-mark">{selected.countryCode}</span>
+          <span>
+            <strong>{selected.name}</strong>
+            <small>
+              {[selected.admin1, selected.countryName].filter(Boolean).join(" · ")}
+              {selected.latitude != null && selected.longitude != null
+                ? ` · ${selected.latitude.toFixed(5)}, ${selected.longitude.toFixed(5)}`
+                : ""}
+            </small>
+          </span>
+        </div>
+      )}
+      <p className="field-help" aria-live="polite">{status || "Search stays on this server. Leave empty for a country-only visit."}</p>
     </div>
   );
 }
@@ -1595,9 +1763,9 @@ function Editor({
   onChanged: (s: string) => void;
 }) {
   const countries = useResource<Country[]>("/api/v1/countries", revision),
-    cities = useResource<City[]>("/api/v1/cities", revision),
     trips = useResource<Trip[]>("/api/v1/trips", revision);
   const [country, setCountry] = useState(""),
+    [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1605,6 +1773,11 @@ function Editor({
     setBusy(true);
     setMessage("");
     const f = new FormData(e.currentTarget);
+    if (kind === "visit" && String(f.get("placeSearch") ?? "").trim() && !selectedPlace) {
+      setMessage("Choose a place from the suggestions, or clear the search for a country-only visit.");
+      setBusy(false);
+      return;
+    }
     try {
       let notice = kind === "visit" ? "Visit added." : kind === "city" ? "City added." : "Trip created.";
       if (kind === "visit")
@@ -1612,7 +1785,8 @@ function Editor({
           method: "POST",
           body: JSON.stringify({
             countryCode: f.get("countryCode"),
-            cityId: f.get("cityId") || null,
+            cityId: selectedPlace?.cityId ?? null,
+            placeId: selectedPlace?.placeId ?? null,
             tripId: f.get("tripId") || null,
             startDate: f.get("startDate") || null,
             endDate: f.get("endDate") || null,
@@ -1689,6 +1863,14 @@ function Editor({
             </>
           ) : (
             <>
+              {kind === "visit" && (
+                <PlaceCombobox
+                  onSelect={(place) => {
+                    setSelectedPlace(place);
+                    if (place) setCountry(place.countryCode);
+                  }}
+                />
+              )}
               <label>
                 Country
                 <select
@@ -1696,7 +1878,8 @@ function Editor({
                   required
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  autoFocus
+                  disabled={Boolean(selectedPlace)}
+                  autoFocus={kind === "city"}
                 >
                   <option value="">Choose a country</option>
                   {countries.data?.map((c) => (
@@ -1706,6 +1889,7 @@ function Editor({
                   ))}
                 </select>
               </label>
+              {selectedPlace && <input type="hidden" name="countryCode" value={country} />}
               {kind === "city" ? (
                 <>
                   <label>
@@ -1741,19 +1925,6 @@ function Editor({
                 </>
               ) : (
                 <>
-                  <label>
-                    City (optional)
-                    <select name="cityId">
-                      <option value="">Country-only visit</option>
-                      {cities.data
-                        ?.filter((c) => !country || c.countryCode === country)
-                        .map((c) => (
-                          <option value={c.id} key={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
                   <label>
                     Trip (optional)
                     <select name="tripId">
@@ -2002,6 +2173,10 @@ function Settings({
               <dt>Countries</dt>
               <dd>{admin.data?.countryRows || "—"}</dd>
             </div>
+            <div>
+              <dt>Offline places</dt>
+              <dd>{admin.data?.placeRows?.toLocaleString("en") || "—"}</dd>
+            </div>
           </dl>
         </section>
         <section>
@@ -2022,6 +2197,10 @@ function Settings({
             <div>
               <dt>License</dt>
               <dd>{manifest.data?.license || "—"}</dd>
+            </div>
+            <div>
+              <dt>Place data</dt>
+              <dd>{manifest.data?.placeDataset || "—"}</dd>
             </div>
           </dl>
         </section>

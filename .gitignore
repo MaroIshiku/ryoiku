@@ -4,6 +4,7 @@ coverage/
 .env
 secrets/
 *.sqlite*
+!data/geonames-cities.db3
 .ishiku/reports/*.json
 playwright-report/
 test-results/

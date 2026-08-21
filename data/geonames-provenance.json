@@ -1,0 +1,15 @@
+{
+  "dataset": "GeoNames cities1000",
+  "snapshot_date": "2026-08-21",
+  "source": "https://download.geonames.org/export/dump/cities1000.zip",
+  "source_archive_sha256": "6e9f8b3af268cf13c49951ae6d44f40b70211986963056b45d8461bcfb1bec44",
+  "source_text_sha256": "565496fa3c8b4e6f4e31807abf9532a94f8b73dada601b9c1f5a7f4d619438fc",
+  "admin1_source": "https://download.geonames.org/export/dump/admin1CodesASCII.txt",
+  "admin1_source_sha256": "590651498043f674accda2b7f46d21286cda0e290b02f8561c5005eee9a5448c",
+  "artifact": "geonames-cities.db3",
+  "artifact_sha256": "38e227d149cf10a63eb4014c48dafe9fa269d5fb8ac62a9c2fa9e3f2f46b9aed",
+  "row_count": 170768,
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "GeoNames geographical database"
+}
