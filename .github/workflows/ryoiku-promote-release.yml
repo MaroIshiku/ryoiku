@@ -122,7 +122,7 @@ jobs:
           ### Deployment
 
           - Image: \`${SOURCE}@${DIGEST}\`
-          - ZimaOS port: \`8515\`
+          - ZimaOS port: \`65006\`
           - Persistent data: \`/DATA/AppData/i_ryoiku/Data\`
           - Immutable verification: ${RELEASE_RUN_URL}
 

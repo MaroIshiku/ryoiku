@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fix the Compose tmpfs declaration so Docker treats `/tmp:size=64m,mode=1777` as one mount instead of parsing `mode=1777` as an invalid mount path.
+- Use the centrally assigned host and ZimaOS catalog port `65006` in production, development, documentation, and generated release notes.
+- Replace the application icon with the newly approved theme-aligned map and location-pin artwork, including deterministic browser and Apple icon exports.
+
 ## 0.1.1 - 2026-08-17
 
 - Removed the world map graticule and increased the default land-to-ocean contrast with theme-colored country fills across every theme and mode.

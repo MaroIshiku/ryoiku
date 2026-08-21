@@ -11,4 +11,4 @@ Ryoiku is distributed under Apache-2.0. Its JavaScript dependency graph is recor
 
 Direct runtime packages include Fastify and its official plugins, React, TanStack Router, Drizzle ORM, Zod, Argon2, D3 Geo, TopoJSON Client, `i18n-iso-countries`, `csv-parse`, `csv-stringify`, `tsx`, and React Hook Form. Their license texts and complete transitive inventory are available through the release SBOM and their package metadata in `node_modules`.
 
-The Ryoiku icon in `src/client/public/ryoiku-icon.png` was supplied by the repository owner as the application source asset. Its SHA-256 provenance is documented in `docs/ASSETS.md`.
+The canonical Ryoiku icon in `assets/icon-source.png` was supplied and approved by the repository owner. Its deterministic web exports and SHA-256 provenance are documented in `docs/ASSETS.md` and `assets/icon-notes.yaml`.
