@@ -35,6 +35,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Resolve immutable build metadata
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "version=${GITHUB_REF_NAME#v}" >> "${GITHUB_OUTPUT}"
+          echo "build-date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "${GITHUB_OUTPUT}"
       - name: Build and publish immutable image
         id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -43,6 +50,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ghcr.io/maroishiku/ryoiku:${{ github.ref_name }}
+          build-args: |
+            APP_VERSION=${{ steps.metadata.outputs.version }}
+            BUILD_DATE=${{ steps.metadata.outputs.build-date }}
+            GIT_SHA=${{ github.sha }}
           provenance: mode=max
           sbom: true
       - name: Attest image provenance

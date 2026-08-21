@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 - 2026-08-21
+
+- Embed the release version, UTC build timestamp, and exact Git commit in the published container manifest instead of retaining Dockerfile development defaults.
+
 ## 0.1.2 - 2026-08-21
 
 - Fix the Compose tmpfs declaration so Docker treats `/tmp:size=64m,mode=1777` as one mount instead of parsing `mode=1777` as an invalid mount path.
