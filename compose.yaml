@@ -13,7 +13,7 @@ services:
     security_opt: [no-new-privileges:true]
     ports:
       - target: 8080
-        published: "8515"
+        published: "65006"
         protocol: tcp
     environment:
       ISHIKU_SETUP_SECRET: "REPLACE-WITH-A-UNIQUE-SECRET-OF-AT-LEAST-32-CHARACTERS"
@@ -23,7 +23,7 @@ services:
       - type: bind
         source: /DATA/AppData/i_ryoiku/Data
         target: /data
-    tmpfs: [/tmp:size=64m,mode=1777]
+    tmpfs: ["/tmp:size=64m,mode=1777"]
     healthcheck:
       test: [CMD, /usr/local/bin/node, -e, "fetch('http://127.0.0.1:8080/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
@@ -54,8 +54,8 @@ x-casaos:
   developer: ishiku
   title: { en_us: Ryoiku }
   tagline: { en_us: Your private travel history and world map }
-  description: { en_us: A private self-hosted map for visits, cities, trips, wishes, statistics, imports, and backups. }
-  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.1.1/src/client/public/ryoiku-icon.png
+  description: { en_us: "A private self-hosted map for visits, cities, trips, wishes, statistics, imports, and backups." }
+  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.1.2/src/client/public/ryoiku-icon.png
   index: /
-  port_map: "8515"
+  port_map: "65006"
   repo: https://github.com/MaroIshiku/ryoiku

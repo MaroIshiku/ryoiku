@@ -1,0 +1,28 @@
+schema_version: 1
+application: ryoiku
+purpose: "Private travel history, visits, trips, and world map."
+category: "Private & Personal"
+tile_color: "#CDBDFF"
+accent_color: "#5B3FB4"
+symbol_rationale: "Folded map with a location pin."
+generation_path: built-in-imagegen-approved-source
+native_source_dimensions: 1254x1254
+source_mode: RGBA
+export_method: direct-lanczos-downsample-no-crop-no-mask-change
+alpha_margin_left_px: 25
+alpha_margin_top_px: 28
+alpha_margin_right_px: 25
+alpha_margin_bottom_px: 28
+alpha_margin_max_ratio: 0.022329
+repository_integrated: true
+canonical_source: assets/icon-source.png
+legacy_alias: src/client/public/ryoiku-icon.png
+exports:
+  icon-32.png: b33bb60c9443d651991b954c5de0b2cfc1ef39d2668d66d3d68b9405c458b6f6
+  icon-64.png: fd5bb754537eb65f41f8417ce09ef780cd6fd3054bed0b7c6d29cb3adcabb2f4
+  icon-128.png: afa48b2cc707a5ceb63124cfb011f0eeda078c35499516f6869fe1dd4d1ad4d6
+  icon-180.png: 0b250f14ea1c6eefd0e179a2e624c278ffb7801dd6771d493477504360d81908
+  icon-192.png: c2a7fceefe3967bbef9d36a2d6b3a2598449144e5392c7481af662cf2f29248a
+  icon-256.png: f767fd6634fe9ef626415a8b309877b20175b7eef0f014e7d1f54744e26cffa7
+  icon-512.png: 82c63d72a3073e6d4211d0c6869dbdede9b95eb2d63ab291ca9a8f6c209d565d
+  icon-1024.png: 923b9a0d81d5699cc26adb10f1d41b0a896f0d3dd66f82afbf70972d7bfc5e0f

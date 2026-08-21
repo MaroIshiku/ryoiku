@@ -21,13 +21,13 @@ On Windows PowerShell, set the variables with `$env:DATABASE_PATH` and `$env:COO
 
 1. Copy `compose.yaml` to the target.
 2. Replace `REPLACE-WITH-A-UNIQUE-SECRET-OF-AT-LEAST-32-CHARACTERS` with a unique random setup secret.
-3. Confirm host port `8515` and data path `/DATA/AppData/i_ryoiku/Data` are free and backed up.
-4. Start with `docker compose up -d`, open port 8515, enter the setup secret, and create the administrator.
+3. Confirm the centrally assigned host port `65006` and data path `/DATA/AppData/i_ryoiku/Data` are free and backed up.
+4. Start with `docker compose up -d`, open port 65006, enter the setup secret, and create the administrator.
 5. Remove `ISHIKU_SETUP_SECRET` from the deployed Compose after successful setup, then recreate the container. Setup is also closed by database state.
 
 The primary Compose is HTTP/LAN oriented and therefore sets `COOKIE_SECURE=false`. For internet or TLS reverse-proxy exposure, set `COOKIE_SECURE=true`, preserve the original host, force HTTPS, and ensure the proxy does not rewrite or log cookies. Do not expose an uninitialized instance without the setup secret.
 
-For a local image build, use `docker compose -f compose.dev.yaml up --build`. Release images run as UID/GID 65532, use a read-only root filesystem, and persist only `/data`.
+For a local image build, use `docker compose -f compose.dev.yaml up --build` and open `http://127.0.0.1:65006`. Release images run as UID/GID 65532, use a read-only root filesystem, and persist only `/data`.
 
 ## Data portability
 
