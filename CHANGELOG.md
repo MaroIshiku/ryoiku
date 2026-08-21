@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 - 2026-08-21
 
 - Fix the Compose tmpfs declaration so Docker treats `/tmp:size=64m,mode=1777` as one mount instead of parsing `mode=1777` as an invalid mount path.
 - Use the centrally assigned host and ZimaOS catalog port `65006` in production, development, documentation, and generated release notes.
