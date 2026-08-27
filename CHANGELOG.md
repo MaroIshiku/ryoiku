@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+## 0.3.0 - 2026-08-27
+
+- Add true one-finger pan and two-finger pinch-to-zoom inside the world map without zooming the surrounding page.
+- Open country and city detail views directly from taps while distinguishing taps from drag gestures.
+- Show visited and wishlisted city markers at the default map view and add text, continent, country-status, city-status, and thematic map filters.
+- Add independent country and city wishlist flows, including private offline city search without requiring a visit or manual city setup.
+- Enforce wishlist city ownership and country consistency on the server; no schema or personal-data migration is required.
+
 ## 0.2.0 - 2026-08-21
 
 - Add private offline place search with disambiguated city, region, country, and coordinate suggestions directly in the Add Visit flow.

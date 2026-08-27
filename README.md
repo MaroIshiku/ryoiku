@@ -2,7 +2,9 @@
 
 Ryoiku is a private, self-hosted travel history and world map. It records repeat visits, custom cities, trips, and wishes; derives visited countries and cities from those records; presents local-map insights; and offers previewed CSV transfer and JSON backup/restore. A bundled offline place search can resolve a name such as “Prien” into distinct candidates and fill city, country, region, and coordinates while the visit is saved.
 
-The UI is English-only and implements ishiku design contract 5 with six themes, light/dark/system modes, a desktop navigation rail, and mobile bottom navigation. Map geometry, country metadata, and the place-search index are bundled; normal runtime operation makes no third-party requests and contains no telemetry.
+The UI is English-only and implements ishiku design contract 5 with six themes, light/dark/system modes, a desktop navigation rail, and mobile bottom navigation. The map supports one-finger drag, two-finger pinch, wheel and button zoom, direct country and city navigation, thematic layers, combined filters, and distinct visited or wishlist city markers. Map geometry, country metadata, and the place-search index are bundled; normal runtime operation makes no third-party requests and contains no telemetry.
+
+Countries and cities can be wishlisted independently or together. Use **Add wishlist** on the map or Cities view to search the bundled place index and save a city without first creating a visit; country and city detail views provide the matching toggle. Wishlist destinations remain normal portable travel data.
 
 ## Local development
 

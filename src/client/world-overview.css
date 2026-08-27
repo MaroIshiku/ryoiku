@@ -105,6 +105,189 @@
   right: var(--space-4);
 }
 
+.map-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 0.8fr) auto auto minmax(150px, auto);
+  align-items: end;
+  gap: var(--space-3);
+  margin: 0 var(--space-5) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-soft);
+}
+
+.map-filter-panel[hidden] {
+  display: none;
+}
+
+.map-filter-toggle {
+  display: none;
+}
+
+.map-search-field,
+.map-select-field {
+  min-width: 0;
+}
+
+.map-search-field > span,
+.map-select-field > span,
+.map-filter-group legend {
+  color: var(--color-on-surface-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.map-filter-panel input[type="search"],
+.map-filter-panel select {
+  min-height: 44px;
+  padding-block: var(--space-2);
+  background: var(--color-surface-raised);
+}
+
+.map-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.map-filter-group legend {
+  margin-bottom: var(--space-1);
+}
+
+.map-filter-group label {
+  display: inline-flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  color: var(--color-on-surface);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.map-filter-group input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.map-filter-actions {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+}
+
+.map-filter-actions span {
+  color: var(--color-on-surface-muted);
+  font-size: 12px;
+}
+
+.map-filter-actions .button {
+  min-height: 32px;
+  padding-inline: var(--space-2);
+}
+
+.world-map-stage .map-frame,
+.world-map-stage .map-frame svg {
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.world-map-stage .map-country {
+  transition:
+    opacity var(--duration-normal) var(--ease-standard),
+    fill var(--duration-normal) var(--ease-standard),
+    stroke var(--duration-fast) var(--ease-standard);
+}
+
+.world-map-stage .map-country.is-interactive {
+  cursor: pointer;
+}
+
+.world-map-stage .map-country.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.city-marker {
+  cursor: pointer;
+}
+
+.city-marker .city-marker-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
+.city-marker .city-marker-dot {
+  fill: var(--color-primary);
+  stroke: var(--color-surface-raised);
+  stroke-width: 2;
+}
+
+.city-marker-wish {
+  fill: var(--color-secondary-container);
+  stroke: var(--color-secondary);
+  stroke-width: 2;
+}
+
+.city-marker .city-marker-center {
+  fill: var(--color-primary);
+  stroke: var(--color-surface-raised);
+  stroke-width: 1;
+}
+
+.map-zoom-readout {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-on-surface-muted);
+  box-shadow: var(--shadow-soft);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.map-gesture-hint {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-on-surface-muted);
+  box-shadow: var(--shadow-soft);
+  font-size: 11px;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.accessible-map-list > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.accessible-map-list[open] > summary {
+  margin-bottom: var(--space-3);
+}
+
 .coverage-card {
   position: absolute;
   left: var(--space-4);
@@ -204,6 +387,26 @@
   white-space: nowrap;
 }
 
+.marker-sample {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid var(--color-surface);
+  outline: 1px solid var(--color-outline);
+}
+
+.marker-sample.visited-city {
+  border-radius: 50%;
+  background: var(--color-secondary);
+}
+
+.marker-sample.wishlist-city {
+  border-radius: 2px;
+  background: var(--color-secondary-container);
+  outline-color: var(--color-secondary);
+  transform: rotate(45deg);
+}
+
 .map-note {
   margin: 0;
   color: var(--color-on-surface-muted);
@@ -225,6 +428,14 @@
 
   .map-layer-switcher button {
     min-width: 0;
+  }
+
+  .map-filter-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-filter-actions {
+    justify-items: start;
   }
 }
 
@@ -250,6 +461,47 @@
     border-radius: var(--radius-lg);
   }
 
+  .map-filter-panel {
+    grid-template-columns: 1fr;
+    margin: 0 var(--space-3) var(--space-3);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .map-filter-toggle {
+    width: calc(100% - var(--space-6));
+    min-height: 48px;
+    margin: 0 var(--space-3) var(--space-3);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-outline);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-soft);
+    color: var(--color-on-surface);
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: var(--space-3);
+    text-align: left;
+    font-weight: 750;
+  }
+
+  .map-filter-toggle small {
+    color: var(--color-on-surface-muted);
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  .map-filter-group label {
+    min-height: 40px;
+  }
+
+  .map-filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
   .coverage-card {
     position: relative;
     left: auto;
@@ -270,6 +522,10 @@
   }
 
   .map-note {
+    display: none;
+  }
+
+  .map-gesture-hint {
     display: none;
   }
 }
@@ -295,5 +551,12 @@
 
   .coverage-progress {
     stroke: Highlight;
+  }
+
+  .city-marker-dot,
+  .city-marker-center,
+  .city-marker-wish {
+    fill: Highlight;
+    stroke: Canvas;
   }
 }

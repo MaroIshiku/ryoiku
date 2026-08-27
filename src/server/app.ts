@@ -20,7 +20,15 @@ const authByRequest = new WeakMap<FastifyRequest, Auth>();
 
 const setupSchema = z.object({ username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), displayName: z.string().trim().max(120).optional(), password: z.string().min(12).max(1024), setupSecret: z.string().max(1024).optional() });
 const loginSchema = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(1024) });
-const wishlistSchema = z.object({ countryCode: z.string().length(2).transform((v) => v.toUpperCase()), cityId: z.string().uuid().nullable().optional(), notes: z.string().max(5000).nullable().optional() });
+const wishlistSchema = z.object({
+  countryCode: z.string().length(2).transform((value) => value.toUpperCase()).optional(),
+  cityId: z.string().uuid().nullable().optional(),
+  placeId: z.string().regex(/^geonames:\d+$/).nullable().optional(),
+  notes: z.string().max(5000).nullable().optional(),
+}).superRefine((input, context) => {
+  if (input.cityId && input.placeId) context.addIssue({ code: 'custom', message: 'Choose either a saved city or a searched place.' });
+  if (!input.countryCode && !input.cityId && !input.placeId) context.addIssue({ code: 'custom', message: 'Choose a country or city.' });
+});
 const settingsSchema = z.object({ countryCountingMode: z.enum(['un195','iso3166','custom']).optional(), customCountryTotal: z.number().int().min(1).max(999).optional(), defaultMapLayer: z.enum(['visited','visit_count','city_count','recency']).optional(), showCityMarkers: z.boolean().optional(), cityMarkerZoomThreshold: z.number().min(1).max(8).optional(), csvSpreadsheetSafe: z.boolean().optional() });
 
 function errorEnvelope(request: FastifyRequest, code: string, message: string, details?: unknown) { return { code, message, details, requestId: request.id }; }
@@ -126,7 +134,7 @@ export async function buildApp(options: { databasePath: string; placeDatabasePat
 
   app.get('/health/live', async () => ({ status: 'ok' }));
   app.get('/health/ready', async (_request, reply) => { try { sqlite.prepare('SELECT 1').get(); places.prepare('SELECT 1').get(); return { status:'ready' }; } catch { return reply.code(503).send({ status:'not-ready' }); } });
-  app.get('/api/manifest', async () => ({ id:'ryoiku',name:'Ryoiku',version:process.env.APP_VERSION??'0.2.0',buildDate:process.env.BUILD_DATE??'development',gitSha:process.env.GIT_SHA??'development',countryDataset:'countries-list 3.4.1',mapDataset:'world-atlas 2.0.2',placeDataset:`GeoNames cities1000 ${placesMeta.dataset_version}`,license:'Apache-2.0' }));
+  app.get('/api/manifest', async () => ({ id:'ryoiku',name:'Ryoiku',version:process.env.APP_VERSION??'0.3.0',buildDate:process.env.BUILD_DATE??'development',gitSha:process.env.GIT_SHA??'development',countryDataset:'countries-list 3.4.1',mapDataset:'world-atlas 2.0.2',placeDataset:`GeoNames cities1000 ${placesMeta.dataset_version}`,license:'Apache-2.0' }));
   app.get('/api/v1/setup/status', async () => ({ required: !one(sqlite,'SELECT id FROM accounts LIMIT 1'), setupSecretRequired: Boolean(options.setupSecret) }));
   app.post('/api/v1/setup', { config:{ rateLimit:{ max:5,timeWindow:'15 minutes' } } }, async (request,reply) => {
     const input = setupSchema.parse(request.body);
@@ -181,7 +189,42 @@ export async function buildApp(options: { databasePath: string; placeDatabasePat
   app.delete('/api/v1/trips/:id',async(request,reply)=>{const {id}=z.object({id:z.string().uuid()}).parse(request.params),user=auth(request);transaction(sqlite,()=>{sqlite.prepare('UPDATE visits SET trip_id=NULL,updated_at=? WHERE trip_id=? AND user_id=?').run(nowIso(),id,user.id);sqlite.prepare('DELETE FROM trips WHERE id=? AND user_id=?').run(id,user.id);});return reply.code(204).send();});
 
   app.get('/api/v1/wishlist',async(request)=>all(sqlite,`SELECT w.id,w.country_code countryCode,co.name_en countryName,w.city_id cityId,c.name cityName,w.notes,w.created_at createdAt FROM wishlist_items w JOIN countries co ON co.code_alpha2=w.country_code LEFT JOIN cities c ON c.id=w.city_id WHERE w.user_id=? ORDER BY co.name_en,c.name`,auth(request).id));
-  app.post('/api/v1/wishlist',async(request,reply)=>{const input=wishlistSchema.parse(request.body),user=auth(request),id=randomUUID();if(!one(sqlite,'SELECT code_alpha2 FROM countries WHERE code_alpha2=?',input.countryCode))return reply.code(404).send(errorEnvelope(request,'COUNTRY_NOT_FOUND','Country not found.'));try{sqlite.prepare('INSERT INTO wishlist_items(id,user_id,country_code,city_id,notes,created_at) VALUES(?,?,?,?,?,?)').run(id,user.id,input.countryCode,input.cityId??null,input.notes??null,nowIso());}catch{return reply.code(409).send(errorEnvelope(request,'WISHLIST_DUPLICATE','That destination is already on your wishlist.'));}return reply.code(201).send({id});});
+  app.post('/api/v1/wishlist',async(request,reply)=>{
+    const input=wishlistSchema.parse(request.body),user=auth(request),id=randomUUID();
+    let city= input.cityId ? one(sqlite,'SELECT id,country_code FROM cities WHERE id=? AND user_id=?',input.cityId,user.id) : undefined;
+    if(input.cityId&&!city)throw new Error('CITY_NOT_FOUND');
+    if(city&&input.countryCode&&city.country_code!==input.countryCode)throw new Error('CITY_COUNTRY_MISMATCH');
+    let place:ReturnType<typeof getPlace>|undefined,geonameId:number|undefined;
+    if(input.placeId){
+      geonameId=Number(input.placeId.slice('geonames:'.length));
+      place=getPlace(places,geonameId);
+      if(!place)throw new Error('PLACE_NOT_FOUND');
+      if(input.countryCode&&place.countryCode!==input.countryCode)throw new Error('PLACE_COUNTRY_MISMATCH');
+    }
+    const countryCode=place?.countryCode??city?.country_code??input.countryCode;
+    if(!countryCode||!one(sqlite,'SELECT code_alpha2 FROM countries WHERE code_alpha2=? AND enabled=1',countryCode))throw new Error('COUNTRY_NOT_FOUND');
+    try{
+      const result=transaction(sqlite,()=>{
+        let cityId=city?.id as string|undefined;
+        if(place&&geonameId!=null){
+          city=one(sqlite,`SELECT id,country_code FROM cities WHERE user_id=? AND geocoder_provider='geonames' AND geocoder_external_id=?`,user.id,String(geonameId));
+          if(!city)city=one(sqlite,'SELECT id,country_code FROM cities WHERE user_id=? AND country_code=? AND normalized_name=? ORDER BY created_at LIMIT 1',user.id,place.countryCode,normalizeName(place.name));
+          cityId=city?.id as string|undefined;
+          if(!cityId){
+            cityId=randomUUID();const timestamp=nowIso();
+            sqlite.prepare(`INSERT INTO cities(id,user_id,country_code,name,normalized_name,admin1,admin2,latitude,longitude,geocoder_provider,geocoder_external_id,is_custom,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(cityId,user.id,place.countryCode,place.name,normalizeName(place.name),place.admin1,null,place.latitude,place.longitude,'geonames',String(geonameId),0,timestamp,timestamp);
+          }
+        }
+        if(one(sqlite,`SELECT id FROM wishlist_items WHERE user_id=? AND country_code=? AND IFNULL(city_id,'')=IFNULL(?,'')`,user.id,countryCode,cityId??null))throw new Error('WISHLIST_DUPLICATE');
+        sqlite.prepare('INSERT INTO wishlist_items(id,user_id,country_code,city_id,notes,created_at) VALUES(?,?,?,?,?,?)').run(id,user.id,countryCode,cityId??null,input.notes??null,nowIso());
+        return {id,cityId:cityId??null,countryCode};
+      });
+      return reply.code(201).send(result);
+    }catch(error){
+      if(error instanceof Error&&error.message==='WISHLIST_DUPLICATE')return reply.code(409).send(errorEnvelope(request,'WISHLIST_DUPLICATE','That destination is already on your wishlist.'));
+      throw error;
+    }
+  });
   app.delete('/api/v1/wishlist/:id',async(request,reply)=>{const {id}=z.object({id:z.string().uuid()}).parse(request.params);sqlite.prepare('DELETE FROM wishlist_items WHERE id=? AND user_id=?').run(id,auth(request).id);return reply.code(204).send();});
 
   app.get('/api/v1/stats/summary',async(request)=>{const user=auth(request);const totals=one(sqlite,`SELECT COUNT(*) visitCount,COUNT(DISTINCT country_code) countryCount,COUNT(DISTINCT city_id) cityCount,COUNT(DISTINCT trip_id) tripCount FROM visits WHERE user_id=?`,user.id)!;const settings=one(sqlite,'SELECT country_counting_mode mode,custom_country_total customTotal FROM app_settings WHERE user_id=?',user.id)!;const countryTotal=settings.mode==='custom'?Number(settings.customTotal):Number(one(sqlite,`SELECT COUNT(*) count FROM countries WHERE enabled=1 AND ${settings.mode==='iso3166'?'default_iso_counted':'default_un195_counted'}=1`)?.count);const recent=visitQuery(sqlite,user.id).slice(0,6);return {...totals,countryTotal,countryCountingMode:settings.mode,wishlistCount:one(sqlite,'SELECT COUNT(*) count FROM wishlist_items WHERE user_id=?',user.id)?.count??0,recent};});

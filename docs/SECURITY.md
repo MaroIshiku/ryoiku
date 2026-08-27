@@ -11,6 +11,7 @@ Ryoiku stores sensitive location history. Run it on a trusted host, use TLS outs
 - Zod validation, a 2.2 MB request limit, prepared SQL statements, foreign keys, atomic transactions, strict CSP and related headers, formula-safe CSV, and redacted logs limit common injection and disclosure paths.
 - Runtime has no analytics, telemetry, remote fonts, map tiles, or required outbound calls.
 - Place autocomplete uses the bundled read-only GeoNames index. Queries require authentication and CSRF, are length- and rate-limited, travel in POST bodies, and are redacted from logs; clients submit stable result IDs and the server re-resolves authoritative country and coordinate values.
+- Wishlist mutations resolve searched places on the server and require every saved city reference to belong to the authenticated account and match its authoritative country; duplicate country and city targets fail closed without exposing another account's cities.
 - The image runs as UID 65532 with dropped capabilities, no-new-privileges, and a read-only root filesystem.
 
 These controls address OWASP ASVS 2.1/2.2 credential lifecycle, 3.2 session binding, 3.4 cookie attributes, 4.1 access control, 4.2 CSRF, 5.1 input validation, 5.3 output encoding, 8.3 sensitive-data handling, 9.1 transport protection, 12.3 file/content handling, and 14.4 security headers/configuration.

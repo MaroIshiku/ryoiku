@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { api, download, setCsrf, type ApiError } from "./api.js";
-import { WorldMap } from "./WorldMap.js";
+import {
+  WorldMap,
+  countryMatchesMapFilters,
+  type MapFilters,
+} from "./WorldMap.js";
 import "./styles.css";
 import "./world-overview.css";
 
@@ -86,7 +90,16 @@ type Summary = {
   wishlistCount: number;
   recent: Visit[];
 };
-type Modal = "visit" | "city" | "trip" | null;
+type Modal = "visit" | "city" | "trip" | "wishlist" | null;
+const defaultMapFilters: MapFilters = {
+  continent: "",
+  search: "",
+  visitedCountries: true,
+  wishlistCountries: true,
+  otherCountries: true,
+  visitedCities: true,
+  wishlistCities: true,
+};
 
 const paths: Record<string, string> = {
   map: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3.1a15 15 0 0 0-1.2-3.1A8.1 8.1 0 0 1 18.9 8ZM12 4c.9 1.1 1.6 2.4 1.9 4h-3.8c.3-1.6 1-2.9 1.9-4ZM9.4 4.9A15 15 0 0 0 8.2 8H5.1a8.1 8.1 0 0 1 4.3-3.1ZM4.3 10h3.5a15 15 0 0 0 0 4H4.3a8 8 0 0 1 0-4Zm.8 6h3.1a15 15 0 0 0 1.2 3.1A8.1 8.1 0 0 1 5.1 16Zm6.9 4c-.9-1.1-1.6-2.4-1.9-4h3.8c-.3 1.6-1 2.9-1.9 4Zm2.3-6H9.7a13 13 0 0 1 0-4h4.6a13 13 0 0 1 0 4Zm.3 5.1a15 15 0 0 0 1.2-3.1h3.1a8.1 8.1 0 0 1-4.3 3.1Zm1.6-5.1a15 15 0 0 0 0-4h3.5a8 8 0 0 1 0 4h-3.5Z",
@@ -192,8 +205,10 @@ function Loading() {
 
 function PlaceCombobox({
   onSelect,
+  required = false,
 }: {
   onSelect: (place: PlaceResult | null) => void;
+  required?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlaceResult[]>([]);
@@ -223,7 +238,9 @@ function PlaceCombobox({
           setStatus(
             response.results.length
               ? `${response.results.length} local places found.`
-              : "No matching places found. You can still save a country-only visit.",
+              : required
+                ? "No matching places found. Try another name."
+                : "No matching places found. You can still save a country-only visit.",
           );
         })
         .catch((error: ApiError | DOMException) => {
@@ -257,7 +274,9 @@ function PlaceCombobox({
   };
   return (
     <div className="place-combobox">
-      <label htmlFor="visit-place-search">City or place (optional)</label>
+      <label htmlFor="visit-place-search">
+        {required ? "City or place" : "City or place (optional)"}
+      </label>
       <div className="place-input-wrap">
         <input
           id="visit-place-search"
@@ -265,6 +284,7 @@ function PlaceCombobox({
           value={query}
           placeholder="Search for Prien, Kyoto, or another place"
           maxLength={80}
+          required={required}
           autoFocus
           autoComplete="off"
           role="combobox"
@@ -341,7 +361,12 @@ function PlaceCombobox({
           </span>
         </div>
       )}
-      <p className="field-help" aria-live="polite">{status || "Search stays on this server. Leave empty for a country-only visit."}</p>
+      <p className="field-help" aria-live="polite">
+        {status ||
+          (required
+            ? "Search stays on this server. Choose one result to add the city."
+            : "Search stays on this server. Leave empty for a country-only visit.")}
+      </p>
     </div>
   );
 }
@@ -520,7 +545,13 @@ function App({ user, onLogout }: { user: User; onLogout: () => void }) {
     ["/trips", "Trips", "trips"],
   ] as const;
   let page: React.ReactNode;
-  if (path === "/") page = <MapPage revision={revision} />;
+  if (path === "/")
+    page = (
+      <MapPage
+        revision={revision}
+        onAddWishlist={() => setModal("wishlist")}
+      />
+    );
   else if (path === "/countries") page = <CountriesPage revision={revision} />;
   else if (path.match(/^\/countries\/[A-Z]{2}$/i))
     page = (
@@ -531,7 +562,13 @@ function App({ user, onLogout }: { user: User; onLogout: () => void }) {
       />
     );
   else if (path === "/cities")
-    page = <CitiesPage revision={revision} onAdd={() => setModal("city")} />;
+    page = (
+      <CitiesPage
+        revision={revision}
+        onAdd={() => setModal("city")}
+        onAddWishlist={() => setModal("wishlist")}
+      />
+    );
   else if (path.match(/^\/cities\/[0-9a-f-]+$/i))
     page = (
       <CityDetail
@@ -749,14 +786,29 @@ function VisitRow({
   );
 }
 
-function MapPage({ revision }: { revision: number }) {
+function MapPage({
+  revision,
+  onAddWishlist,
+}: {
+  revision: number;
+  onAddWishlist: () => void;
+}) {
   const countries = useResource<Country[]>("/api/v1/map/summary", revision),
     cities = useResource<City[]>("/api/v1/map/cities", revision),
     summary = useResource<Summary>("/api/v1/stats/summary", revision),
     continents = useResource<
       { code: string; name: string; visitedCountries: number; visits: number }[]
     >("/api/v1/stats/continents", revision);
-  const [layer, setLayer] = useState("visited");
+  const [layer, setLayer] = useState("visited"),
+    [filters, setFilters] = useState<MapFilters>(defaultMapFilters),
+    [filtersOpen, setFiltersOpen] = useState(true);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 601px)");
+    const sync = () => setFiltersOpen(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
   if (countries.error) return <ErrorState message={countries.error} />;
   if (!countries.data || !cities.data || !summary.data || !continents.data)
     return (
@@ -788,6 +840,16 @@ function MapPage({ revision }: { revision: number }) {
     { value: "city_count", label: "Cities" },
     { value: "recency", label: "Recent" },
   ];
+  const visibleCountries = countries.data.filter((country) =>
+    countryMatchesMapFilters(country, filters),
+  );
+  const visibleDestinationLabel = `${visibleCountries.length} ${
+    visibleCountries.length === 1 ? "destination matches" : "destinations match"
+  }`;
+  const updateFilter = <Key extends keyof MapFilters>(
+    key: Key,
+    value: MapFilters[Key],
+  ) => setFilters((current) => ({ ...current, [key]: value }));
   return (
     <>
       <PageHead
@@ -795,10 +857,15 @@ function MapPage({ revision }: { revision: number }) {
         title="Your world"
         description="Every visit, from the big picture to the details."
         actions={
-          <button className="button tonal" onClick={() => go("/insights")}>
-            <Icon name="insights" />
-            View insights
-          </button>
+          <>
+            <button className="button outlined" onClick={onAddWishlist}>
+              Add wishlist
+            </button>
+            <button className="button tonal" onClick={() => go("/insights")}>
+              <Icon name="insights" />
+              View insights
+            </button>
+          </>
         }
       />
       <section className="map-card world-card">
@@ -827,6 +894,106 @@ function MapPage({ revision }: { revision: number }) {
             ))}
           </div>
         </div>
+        <button
+          type="button"
+          className="map-filter-toggle"
+          aria-expanded={filtersOpen}
+          aria-controls="map-filter-panel"
+          onClick={() => setFiltersOpen((open) => !open)}
+        >
+          <span>Map filters</span>
+          <small>{visibleDestinationLabel}</small>
+          <span aria-hidden="true">{filtersOpen ? "−" : "+"}</span>
+        </button>
+        <section
+          id="map-filter-panel"
+          className="map-filter-panel"
+          aria-label="Map filters"
+          hidden={!filtersOpen}
+        >
+          <label className="map-search-field">
+            <span>Find a country</span>
+            <input
+              type="search"
+              value={filters.search}
+              onChange={(event) => updateFilter("search", event.target.value)}
+              placeholder="Name or code"
+            />
+          </label>
+          <label className="map-select-field">
+            <span>Continent</span>
+            <select
+              value={filters.continent}
+              onChange={(event) =>
+                updateFilter("continent", event.target.value)
+              }
+            >
+              <option value="">All continents</option>
+              {continents.data.map((continent) => (
+                <option key={continent.code} value={continent.code}>
+                  {continent.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <fieldset className="map-filter-group">
+            <legend>Countries</legend>
+            {[
+              ["visitedCountries", "Visited"],
+              ["wishlistCountries", "Wishlist"],
+              ["otherCountries", "Other"],
+            ].map(([key, label]) => (
+              <label key={key}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(filters[key as keyof MapFilters])}
+                  onChange={(event) =>
+                    updateFilter(
+                      key as keyof MapFilters,
+                      event.target.checked as never,
+                    )
+                  }
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset className="map-filter-group">
+            <legend>City markers</legend>
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.visitedCities}
+                onChange={(event) =>
+                  updateFilter("visitedCities", event.target.checked)
+                }
+              />
+              Visited
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.wishlistCities}
+                onChange={(event) =>
+                  updateFilter("wishlistCities", event.target.checked)
+                }
+              />
+              Wishlist
+            </label>
+          </fieldset>
+          <div className="map-filter-actions">
+            <span aria-live="polite">
+              {visibleDestinationLabel}
+            </span>
+            <button
+              type="button"
+              className="button text"
+              onClick={() => setFilters(defaultMapFilters)}
+            >
+              Reset filters
+            </button>
+          </div>
+        </section>
         <div className="world-map-stage">
           <WorldMap
             countries={countries.data}
@@ -836,6 +1003,7 @@ function MapPage({ revision }: { revision: number }) {
               ) as (City & { latitude: number; longitude: number })[]
             }
             layer={layer}
+            filters={filters}
             showCities
             onCountry={(code) => go(`/countries/${code}`)}
             onCity={(id) => go(`/cities/${id}`)}
@@ -867,13 +1035,19 @@ function MapPage({ revision }: { revision: number }) {
         <div className="world-card-footer">
           <p className="map-legend" aria-label="Map legend">
             <span className="legend-item">
-              <span className="swatch visited" /> Visited
+              <span className="swatch visited" aria-hidden="true" /> Visited country
             </span>
             <span className="legend-item">
-              <span className="swatch wishlist" /> Wishlist
+              <span className="swatch wishlist" aria-hidden="true" /> Wishlist country
             </span>
             <span className="legend-item">
-              <span className="swatch unvisited" /> Not visited
+              <span className="swatch unvisited" aria-hidden="true" /> Other country
+            </span>
+            <span className="legend-item">
+              <span className="marker-sample visited-city" aria-hidden="true" /> Visited city
+            </span>
+            <span className="legend-item">
+              <span className="marker-sample wishlist-city" aria-hidden="true" /> Wishlist city
             </span>
           </p>
           <p className="map-note">Equal Earth · local geometry</p>
@@ -944,17 +1118,15 @@ function MapPage({ revision }: { revision: number }) {
           )}
         </section>
       </div>
-      <section className="card accessible-map-list">
+      <details className="card accessible-map-list">
+        <summary>Accessible map list</summary>
         <div className="card-head">
           <div>
-            <h2>Map country list</h2>
-            <p>Keyboard-accessible equivalent of every visited map area</p>
+            <h2>Visible countries</h2>
+            <p>Keyboard-accessible equivalent of the current map filters</p>
           </div>
         </div>
-        {countries.data
-          .filter((c) => c.visited)
-          .slice(0, 20)
-          .map((c) => (
+        {visibleCountries.map((c) => (
             <button
               className="country-chip"
               key={c.code}
@@ -965,7 +1137,7 @@ function MapPage({ revision }: { revision: number }) {
               <b>{c.visitCount}</b>
             </button>
           ))}
-      </section>
+      </details>
     </>
   );
 }
@@ -1043,15 +1215,28 @@ function CountriesPage({ revision }: { revision: number }) {
 function CitiesPage({
   revision,
   onAdd,
+  onAddWishlist,
 }: {
   revision: number;
   onAdd: () => void;
+  onAddWishlist: () => void;
 }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(""),
+    [filter, setFilter] = useState("all");
   const resource = useResource<City[]>(
     `/api/v1/cities?search=${encodeURIComponent(search)}`,
     revision,
   );
+  const visibleCities =
+    resource.data?.filter((city) =>
+      filter === "visited"
+        ? city.visited
+        : filter === "wishlist"
+          ? city.wishlisted
+          : filter === "unvisited"
+            ? !city.visited
+            : true,
+    ) ?? [];
   return (
     <>
       <PageHead
@@ -1059,10 +1244,15 @@ function CitiesPage({
         title="Cities"
         description="Custom places remain visible even when coordinates are unknown."
         actions={
-          <button className="button tonal" onClick={onAdd}>
-            <Icon name="plus" />
-            Add city
-          </button>
+          <>
+            <button className="button outlined" onClick={onAddWishlist}>
+              Add wishlist
+            </button>
+            <button className="button tonal" onClick={onAdd}>
+              <Icon name="plus" />
+              Add city
+            </button>
+          </>
         }
       />
       <div className="toolbar">
@@ -1075,14 +1265,23 @@ function CitiesPage({
             placeholder="City or region"
           />
         </label>
+        <label className="compact-field">
+          Show
+          <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+            <option value="all">All cities</option>
+            <option value="visited">Visited</option>
+            <option value="wishlist">Wishlist</option>
+            <option value="unvisited">Not visited</option>
+          </select>
+        </label>
       </div>
       {resource.error ? (
         <ErrorState message={resource.error} />
       ) : !resource.data ? (
         <Loading />
-      ) : resource.data.length ? (
+      ) : visibleCities.length ? (
         <section className="card-grid">
-          {resource.data.map((city) => (
+          {visibleCities.map((city) => (
             <button
               className="place-card"
               key={city.id}
@@ -1100,6 +1299,7 @@ function CitiesPage({
               </span>
               <b>{city.visitCount}</b>
               <small>
+                {city.wishlisted && "Wishlist · "}
                 {city.latitude == null ? "Coordinates unknown" : "Mapped"}
               </small>
             </button>
@@ -1108,7 +1308,11 @@ function CitiesPage({
       ) : (
         <Empty
           title="No cities found"
-          message="Add a city manually; coordinates are always optional."
+          message={
+            filter === "wishlist"
+              ? "Add a city destination to your wishlist or change the filter."
+              : "Add a city manually; coordinates are always optional."
+          }
           action={
             <button className="button tonal" onClick={onAdd}>
               Add city
@@ -1302,6 +1506,23 @@ function CityDetail({
   const [target, setTarget] = useState("");
   if (!r.data) return r.error ? <ErrorState message={r.error} /> : <Loading />;
   const c = r.data;
+  const wishlist = async () => {
+    if (c.wishlisted) {
+      const items = await api<
+        { id: string; countryCode: string; cityId: string | null }[]
+      >("/api/v1/wishlist");
+      const item = items.find((entry) => entry.cityId === c.id);
+      if (item)
+        await api(`/api/v1/wishlist/${item.id}`, { method: "DELETE" });
+      onChanged("City removed from wishlist.");
+    } else {
+      await api("/api/v1/wishlist", {
+        method: "POST",
+        body: JSON.stringify({ countryCode: c.countryCode, cityId: c.id }),
+      });
+      onChanged("City added to wishlist.");
+    }
+  };
   const mergeCandidates =
     cities.data?.filter(
       (city) => city.id !== id && city.countryCode === c.countryCode,
@@ -1316,22 +1537,27 @@ function CityDetail({
         title={c.name}
         description={c.admin1 || "Custom city"}
         actions={
-          <button
-            className="button danger"
-            onClick={async () => {
-              if (
-                confirm("Keep its visits as country-only and delete this city?")
-              ) {
-                await api(`/api/v1/cities/${id}?mode=country_only`, {
-                  method: "DELETE",
-                });
-                onChanged("City deleted; visits kept as country-only.");
-                go("/cities");
-              }
-            }}
-          >
-            Delete city
-          </button>
+          <>
+            <button className="button outlined" onClick={wishlist}>
+              {c.wishlisted ? "Remove wishlist" : "Add to wishlist"}
+            </button>
+            <button
+              className="button danger"
+              onClick={async () => {
+                if (
+                  confirm("Keep its visits as country-only and delete this city?")
+                ) {
+                  await api(`/api/v1/cities/${id}?mode=country_only`, {
+                    method: "DELETE",
+                  });
+                  onChanged("City deleted; visits kept as country-only.");
+                  go("/cities");
+                }
+              }}
+            >
+              Delete city
+            </button>
+          </>
         }
       />
       <section className="metrics">
@@ -1766,6 +1992,7 @@ function Editor({
     trips = useResource<Trip[]>("/api/v1/trips", revision);
   const [country, setCountry] = useState(""),
     [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null),
+    [wishlistKind, setWishlistKind] = useState<"city" | "country">("city"),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1778,8 +2005,22 @@ function Editor({
       setBusy(false);
       return;
     }
+    if (kind === "wishlist" && wishlistKind === "city" && !selectedPlace) {
+      setMessage("Choose a city from the place suggestions.");
+      setBusy(false);
+      return;
+    }
     try {
-      let notice = kind === "visit" ? "Visit added." : kind === "city" ? "City added." : "Trip created.";
+      let notice =
+        kind === "visit"
+          ? "Visit added."
+          : kind === "city"
+            ? "City added."
+            : kind === "wishlist"
+              ? wishlistKind === "city"
+                ? "City added to wishlist."
+                : "Country added to wishlist."
+              : "Trip created.";
       if (kind === "visit")
         await api("/api/v1/visits", {
           method: "POST",
@@ -1818,6 +2059,23 @@ function Editor({
             notes: f.get("notes") || null,
           }),
         });
+      if (kind === "wishlist")
+        await api("/api/v1/wishlist", {
+          method: "POST",
+          body: JSON.stringify(
+            wishlistKind === "city"
+              ? {
+                  countryCode: selectedPlace?.countryCode,
+                  cityId: selectedPlace?.cityId ?? null,
+                  placeId: selectedPlace?.placeId ?? null,
+                  notes: f.get("notes") || null,
+                }
+              : {
+                  countryCode: f.get("countryCode"),
+                  notes: f.get("notes") || null,
+                },
+          ),
+        });
       onChanged(notice);
     } catch (err) {
       setMessage((err as ApiError).message);
@@ -1830,7 +2088,9 @@ function Editor({
       ? "Add a visit"
       : kind === "city"
         ? "Add a city"
-        : "Create a trip";
+        : kind === "wishlist"
+          ? "Add to wishlist"
+          : "Create a trip";
   return (
     <div
       className="modal-backdrop"
@@ -1845,7 +2105,11 @@ function Editor({
         <div className="sheet-head">
           <div>
             <span className="eyebrow">
-              {kind === "visit" ? "Travel history" : "Places"}
+              {kind === "visit"
+                ? "Travel history"
+                : kind === "wishlist"
+                  ? "Future destinations"
+                  : "Places"}
             </span>
             <h2 id="editor-title">{title}</h2>
           </div>
@@ -1854,7 +2118,70 @@ function Editor({
           </button>
         </div>
         <form className="editor-form" onSubmit={submit}>
-          {kind === "trip" ? (
+          {kind === "wishlist" ? (
+            <>
+              <fieldset className="wishlist-kind">
+                <legend>Destination type</legend>
+                <div
+                  className="segmented"
+                  role="radiogroup"
+                  aria-label="Wishlist destination type"
+                >
+                  {[
+                    ["city", "City"],
+                    ["country", "Country"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={wishlistKind === value}
+                      className={wishlistKind === value ? "active" : ""}
+                      key={value}
+                      onClick={() => {
+                        setWishlistKind(value as "city" | "country");
+                        setSelectedPlace(null);
+                        setCountry("");
+                        setMessage("");
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              {wishlistKind === "city" ? (
+                <PlaceCombobox
+                  required
+                  onSelect={(place) => {
+                    setSelectedPlace(place);
+                    setCountry(place?.countryCode ?? "");
+                  }}
+                />
+              ) : (
+                <label>
+                  Country
+                  <select
+                    name="countryCode"
+                    required
+                    value={country}
+                    onChange={(event) => setCountry(event.target.value)}
+                    autoFocus
+                  >
+                    <option value="">Choose a country</option>
+                    {countries.data?.map((entry) => (
+                      <option value={entry.code} key={entry.code}>
+                        {entry.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                Notes (optional)
+                <textarea name="notes" maxLength={5000} rows={4} />
+              </label>
+            </>
+          ) : kind === "trip" ? (
             <>
               <label>
                 Trip name
@@ -1940,7 +2267,7 @@ function Editor({
               )}
             </>
           )}
-          {kind !== "city" && (
+          {(kind === "visit" || kind === "trip") && (
             <>
               <div className="form-grid">
                 <label>
