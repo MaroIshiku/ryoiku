@@ -13,21 +13,21 @@
   "implementation": [
     {
       "path": "e2e/ryoiku.e2e.ts",
-      "sha256": "5925ed59b74283e834bfc747545ff7a47f4fd00b7fa6887773b092b524654932",
+      "sha256": "62f2c017f3d18dbdf50af89358cd74af7847d87488358af46099c33c247c0601",
       "roles": [
         "theme-controller"
       ]
     },
     {
       "path": "src/client/main.tsx",
-      "sha256": "f83a00416d03bfc7906109f786bc4e6fe71d65cfa9d2c8e170a71170dda5ca3b",
+      "sha256": "fd5550d4664e73b34370ff6ca56f215e0757c1dd1914d99ff32fd4c6fe46b3a5",
       "roles": [
         "theme-controller"
       ]
     },
     {
       "path": "src/client/styles.css",
-      "sha256": "e66853a4cdae7bdf0dc2c62b64d2b5bc0c7ebde1dab9dee3ca30267ac32ffec2",
+      "sha256": "502bdd0ab6378f4a5ca6958aa01365526b225058d6b85bce3d388c9dc7883359",
       "roles": [
         "components",
         "tokens"
@@ -35,7 +35,7 @@
     },
     {
       "path": "src/client/world-overview.css",
-      "sha256": "054304fb106d22318a24e2dcf70181c8b14b12d0369d2e18963d76a950bd1911",
+      "sha256": "ced1b39d23da010287d94737fd7c65269ed70f823319d142fb5c57311534cccc",
       "roles": [
         "components",
         "tokens"
