@@ -1,19 +1,19 @@
-ARG APP_VERSION=0.2.0
+ARG VERSION=0.4.0
 ARG BUILD_DATE=development
 ARG GIT_SHA=development
 
-FROM node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d AS build
+FROM node:24.20.0-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build && npm prune --omit=dev && mkdir /data-seed
 
-FROM gcr.io/distroless/cc-debian12:nonroot@sha256:adcd20c7b4c988b73cbfbddb26d2eee574571e6d7c9ffea29b3821e0690efb77 AS runtime
-ARG APP_VERSION
+FROM gcr.io/distroless/cc-debian12:nonroot@sha256:9dac0a79194e45a7da0158a9c6da57b217585af0786db3845d1f0ec1a0dd182f AS runtime
+ARG VERSION
 ARG BUILD_DATE
 ARG GIT_SHA
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/app.sqlite PLACE_DATABASE_PATH=/app/reference/geonames-cities.db3 COOKIE_SECURE=true APP_VERSION=${APP_VERSION} BUILD_DATE=${BUILD_DATE} GIT_SHA=${GIT_SHA}
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATABASE_PATH=/data/app.sqlite PLACE_DATABASE_PATH=/app/reference/geonames-cities.db3 COOKIE_SECURE=true APP_VERSION=${VERSION} BUILD_DATE=${BUILD_DATE} GIT_SHA=${GIT_SHA}
 WORKDIR /app
 COPY --from=build --chown=65532:65532 /usr/local/bin/node /usr/local/bin/node
 COPY --from=build --chown=65532:65532 /app/package.json /app/package-lock.json ./

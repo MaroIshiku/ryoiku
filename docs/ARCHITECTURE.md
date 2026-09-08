@@ -7,7 +7,7 @@ Ryoiku is one Node.js 24 process. Fastify serves the versioned JSON API, health 
 - `src/server/app.ts`: HTTP policy, authentication, authorization, validation, domain endpoints, static delivery, and security headers.
 - `src/server/database.ts`: versioned schema initialization, local country seeding, queries, transactions, and audit persistence.
 - `src/server/domain.ts`: validated domain inputs and canonical CSV parsing/writing.
-- `src/server/places.ts`: bounded prefix search and authoritative lookup over the bundled read-only GeoNames FTS5 index.
+- `src/server/places.ts`: bounded prefix search and authoritative lookup over the bundled read-only GeoNames FTS5 index, with fail-closed runtime schema and provenance validation.
 - `src/client`: React UI, API client, semantic design tokens, and the local Equal Earth SVG map.
 - `/data/app.sqlite`: accounts, sessions, settings, travel records, previews, and audit events. Only `/data` is writable in the production container.
 - `/app/reference/geonames-cities.db3`: immutable application reference data; it never stores user searches or travel history.
@@ -15,6 +15,8 @@ Ryoiku is one Node.js 24 process. Fastify serves the versioned JSON API, health 
 Country and city `visited` values are query projections over `visits`; they are never mutable source fields. A trip deletion nulls its visit references. A city deletion must reject, delete linked visits, or convert those visits to country-only records. Imports and restores use a persisted, expiring preview followed by one transaction.
 
 Runtime has no external service dependency. Country metadata comes from pinned packages at database initialization, map geometry is bundled into the browser build, and place discovery queries the local GeoNames index. Search terms are sent in authenticated, CSRF-protected POST bodies so they do not appear in request URLs, are explicitly redacted from structured logs, and never leave the server. Selecting a GeoNames result resolves the server-owned record again, verifies its country, and transactionally reuses or creates the city before creating a visit or city wishlist entry. Country and city wishlist rows are independent targets, so both may coexist. Manual cities and country-only visits remain independent fallbacks.
+
+The deterministic GeoNames generator performs a complete SQLite integrity check before the reference artifact is accepted. Application startup opens that immutable artifact in query-only mode and validates the required tables, FTS index, dataset identity, licence, version, and row-count metadata. This preserves fail-closed behavior without repeating a full 45 MB database scan on every process start.
 
 The map camera is client-only state bounded to the Equal Earth viewport. Pointer capture differentiates stationary taps from one-pointer pan and two-pointer midpoint scaling; `touch-action: none` is limited to the map surface so device gestures manipulate the map without disabling normal page scrolling elsewhere. Filters never rewrite travel data and city markers are projections over owned cities with coordinates plus their derived visit and wishlist state.
 

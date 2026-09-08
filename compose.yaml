@@ -1,7 +1,7 @@
 # ZimaOS-first deployment. Replace the setup-secret placeholder before first start.
 services:
   ryoiku:
-    image: ghcr.io/maroishiku/ryoiku:latest
+    image: ghcr.io/maroishiku/ryoiku:v0.3.0@sha256:f4bf8d1fe4320f88c1511573ed0f1324a771a9990f070f439ea4e0df9f24ea41
     init: true
     restart: unless-stopped
     user: "65532:65532"
@@ -47,7 +47,7 @@ services:
 
 x-casaos:
   id: dev.ishiku.ryoiku
-  architectures: [amd64]
+  architectures: [amd64, arm64]
   main: ryoiku
   author: ishiku
   category: Lifestyle
@@ -55,7 +55,7 @@ x-casaos:
   title: { en_us: Ryoiku }
   tagline: { en_us: Your private travel history and world map }
   description: { en_us: "A private self-hosted map for visits, cities, trips, wishes, statistics, imports, and backups." }
-  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.2.0/src/client/public/ryoiku-icon.png
+  icon: https://cdn.jsdelivr.net/gh/MaroIshiku/ryoiku@v0.3.0/src/client/public/ryoiku-icon.png
   index: /
   port_map: "65006"
   repo: https://github.com/MaroIshiku/ryoiku

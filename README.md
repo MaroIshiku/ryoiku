@@ -13,7 +13,7 @@ Requirements: Node.js 24 and npm 11.
 ```sh
 npm ci
 npm run check
-npm run test:e2e
+npm run test:e2e:verified
 DATABASE_PATH=./ryoiku.local.sqlite COOKIE_SECURE=false npm run dev
 ```
 
@@ -46,7 +46,7 @@ See [backup and restore](docs/BACKUP-RESTORE.md), [architecture](docs/ARCHITECTU
 ```sh
 npm ci
 npm run check
-npm run test:e2e
+npm run test:e2e:verified
 npm audit --audit-level=high
 docker compose config --quiet
 docker compose -f compose.dev.yaml config --quiet
@@ -54,6 +54,8 @@ docker build --check .
 docker build -t ryoiku:verify .
 node .ishiku/kit/scripts/verify-app . --full
 ```
+
+The verified browser gate runs Chromium and Firefox on the host and WebKit as an unprivileged process from the digest-pinned official Playwright 1.63.0 image. Docker is therefore required for the complete Linux verification command; the repository is mounted read-only into that browser container.
 
 `appspec.yaml` is the repository requirement authority. `.ishiku/requirements/traceability.yaml` links those requirements to executable evidence. No release should be called verified unless every required command actually passed.
 

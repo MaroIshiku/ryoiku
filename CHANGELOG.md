@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-09-08
+
+- Integrate the approved staged Ryoiku icon source unchanged across canonical repository exports, browser favicons, Apple touch, PWA manifest, legacy app, and ZimaOS catalog consumers.
+- Align the interface and Settings information architecture with ishiku design contract 5.1.1, including explicit Profile and Sessions sections.
+- Update the embedded ishiku kit to 1.2.1 and consolidate verification, multi-architecture release, vulnerability scan, SBOM, provenance, and digest-promotion automation onto the current shared workflows.
+- Update supported application and build dependencies, including the transitive `fast-uri` security fix; the high/critical dependency audit is clean.
+- Replace the full GeoNames database scan on every startup with fail-closed schema and provenance checks while retaining the full integrity check in the deterministic dataset build.
+- Refresh pinned Node.js and distroless container bases and keep the already assigned ZimaOS host port `65006` unchanged.
+- Make the verified browser gate reproducible across Linux hosts by running Chromium and Firefox locally and WebKit as an unprivileged process in a digest-pinned official Playwright image.
 
 ## 0.3.0 - 2026-08-27
 

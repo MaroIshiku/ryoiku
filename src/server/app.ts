@@ -134,7 +134,7 @@ export async function buildApp(options: { databasePath: string; placeDatabasePat
 
   app.get('/health/live', async () => ({ status: 'ok' }));
   app.get('/health/ready', async (_request, reply) => { try { sqlite.prepare('SELECT 1').get(); places.prepare('SELECT 1').get(); return { status:'ready' }; } catch { return reply.code(503).send({ status:'not-ready' }); } });
-  app.get('/api/manifest', async () => ({ id:'ryoiku',name:'Ryoiku',version:process.env.APP_VERSION??'0.3.0',buildDate:process.env.BUILD_DATE??'development',gitSha:process.env.GIT_SHA??'development',countryDataset:'countries-list 3.4.1',mapDataset:'world-atlas 2.0.2',placeDataset:`GeoNames cities1000 ${placesMeta.dataset_version}`,license:'Apache-2.0' }));
+  app.get('/api/manifest', async () => ({ id:'ryoiku',name:'Ryoiku',version:process.env.APP_VERSION??'0.4.0',buildDate:process.env.BUILD_DATE??'development',gitSha:process.env.GIT_SHA??'development',countryDataset:'countries-list 3.4.1',mapDataset:'world-atlas 2.0.2',placeDataset:`GeoNames cities1000 ${placesMeta.dataset_version}`,license:'Apache-2.0' }));
   app.get('/api/v1/setup/status', async () => ({ required: !one(sqlite,'SELECT id FROM accounts LIMIT 1'), setupSecretRequired: Boolean(options.setupSecret) }));
   app.post('/api/v1/setup', { config:{ rateLimit:{ max:5,timeWindow:'15 minutes' } } }, async (request,reply) => {
     const input = setupSchema.parse(request.body);

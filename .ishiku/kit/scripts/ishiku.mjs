@@ -365,7 +365,10 @@ function buildDistributionManifest() {
   if (!source.workspace) fail('build-distribution-manifest must run from the central workspace kit.');
   const version = parseConfig(join(source.kit, 'version.yaml'));
   const files = [];
-  for (const directory of ['policies', 'schemas', 'scripts', 'templates', 'workflows', 'fixtures']) {
+  const portRegistry = join(source.workspace, 'ports.yaml');
+  if (!existsSync(portRegistry)) fail('Workspace port registry ports.yaml is missing.');
+  files.push({ path: 'ports.yaml', sha256: sha256(portRegistry) });
+  for (const directory of ['design-system', 'policies', 'schemas', 'scripts', 'templates', 'workflows', 'fixtures']) {
     for (const file of walk(join(source.kit, directory))) files.push({ path: relative(source.workspace, file).replaceAll('\\', '/'), sha256: sha256(file) });
   }
   for (const file of walk(join(source.workspace, '.agents', 'skills'))) files.push({ path: relative(source.workspace, file).replaceAll('\\', '/'), sha256: sha256(file) });

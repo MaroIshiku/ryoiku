@@ -2,8 +2,8 @@
   "schema_version": 1,
   "contract": {
     "id": "ishiku-design-5",
-    "version": "5.0.0",
-    "sha256": "46628d1b69e5c27c3a339a31afbb7c3bed8d148b2fb0916c975407d86e9a1516"
+    "version": "5.1.1",
+    "sha256": "c278e89af15e9036e57524dddcc1004b8b5fd85bdee1ad56eb38bd18816a5a51"
   },
   "application": {
     "id": "ryoiku",
@@ -20,7 +20,7 @@
     },
     {
       "path": "src/client/main.tsx",
-      "sha256": "fd5550d4664e73b34370ff6ca56f215e0757c1dd1914d99ff32fd4c6fe46b3a5",
+      "sha256": "ffcf1190c5b678248e1cb18390f58dbd91cc61b56509bb653b75c4c50804678f",
       "roles": [
         "theme-controller"
       ]

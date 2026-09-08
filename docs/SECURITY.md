@@ -14,7 +14,7 @@ Ryoiku stores sensitive location history. Run it on a trusted host, use TLS outs
 - Wishlist mutations resolve searched places on the server and require every saved city reference to belong to the authenticated account and match its authoritative country; duplicate country and city targets fail closed without exposing another account's cities.
 - The image runs as UID 65532 with dropped capabilities, no-new-privileges, and a read-only root filesystem.
 
-These controls address OWASP ASVS 2.1/2.2 credential lifecycle, 3.2 session binding, 3.4 cookie attributes, 4.1 access control, 4.2 CSRF, 5.1 input validation, 5.3 output encoding, 8.3 sensitive-data handling, 9.1 transport protection, 12.3 file/content handling, and 14.4 security headers/configuration.
+The implemented and tested controls map to OWASP ASVS 5.0.0 requirements `v5.0.0-3.3.1` and `v5.0.0-3.3.2` (cookie protections), `v5.0.0-3.4.1` (HSTS), `v5.0.0-3.5.1` (CSRF), `v5.0.0-6.1.1` (rate limiting), `v5.0.0-7.4.1` (logout invalidation), `v5.0.0-8.2.2` and `v5.0.0-8.3.1` (object-level and trusted-layer authorization), `v5.0.0-11.4.2` (password hashing), `v5.0.0-14.2.1` (sensitive request data), and `v5.0.0-16.2.5` (sensitive log data).
 
 ## Threat model
 

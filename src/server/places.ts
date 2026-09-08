@@ -37,9 +37,33 @@ function ftsPrefixQuery(value: string) {
 
 export function openPlaceDatabase(path: string) {
   const database = new DatabaseSync(path, { readOnly: true });
-  if (database.prepare('PRAGMA integrity_check').get()?.integrity_check !== 'ok') {
+  try {
+    database.exec('PRAGMA query_only=ON');
+    const requiredObjects = database.prepare(`
+      SELECT name
+      FROM sqlite_master
+      WHERE name IN ('metadata', 'places', 'places_fts')
+    `).all() as { name: string }[];
+    const metadata = Object.fromEntries((database.prepare(`
+      SELECT key, value
+      FROM metadata
+      WHERE key IN ('dataset', 'dataset_version', 'license', 'row_count')
+    `).all() as { key: string; value: string }[]).map(({ key, value }) => [key, value]));
+    const objectNames = new Set(requiredObjects.map(({ name }) => name));
+    const rowCount = Number(metadata.row_count);
+    if (
+      !['metadata', 'places', 'places_fts'].every((name) => objectNames.has(name)) ||
+      metadata.dataset !== 'GeoNames cities1000' ||
+      metadata.license !== 'CC BY 4.0' ||
+      !metadata.dataset_version ||
+      !Number.isSafeInteger(rowCount) ||
+      rowCount <= 0
+    ) {
+      throw new Error('missing required schema or provenance');
+    }
+  } catch (error) {
     database.close();
-    throw new Error('Bundled place index failed its integrity check.');
+    throw new Error('Bundled place index failed its schema and provenance check.', { cause: error });
   }
   return database;
 }

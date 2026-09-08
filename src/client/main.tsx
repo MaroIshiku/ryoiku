@@ -2421,7 +2421,10 @@ function Settings({
           </button>
         </div>
         <section>
-          <h3>{user.displayName || user.username}</h3>
+          <h3>Profile</h3>
+          <p>
+            <strong>{user.displayName || user.username}</strong>
+          </p>
           <p className="muted">
             {user.username} · {user.role}
           </p>
@@ -2486,6 +2489,16 @@ function Settings({
           </button>
         </section>
         <section>
+          <h3>Sessions</h3>
+          <p className="muted">
+            This device has the active session. Sign out when you finish on a
+            shared device.
+          </p>
+          <button className="button outlined full" onClick={logout}>
+            Sign out this session
+          </button>
+        </section>
+        <section>
           <h3>Administration</h3>
           <dl className="info-list">
             <div>
@@ -2531,9 +2544,6 @@ function Settings({
             </div>
           </dl>
         </section>
-        <button className="button outlined full" onClick={logout}>
-          Sign out
-        </button>
       </div>
     </div>
   );
